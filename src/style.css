@@ -1599,3 +1599,87 @@ tr.reveal {
     animation: none;
   }
 }
+
+/* ═════════ 응시 방식 선택 · 공유 ═════════ */
+.mode-pick {
+  display: grid;
+  gap: 10px;
+}
+.mode-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 14px 18px;
+}
+.mode-btn b {
+  font-size: 19px;
+}
+.mode-btn small {
+  font-size: 13px;
+  font-weight: 600;
+  opacity: 0.8;
+}
+.timetable th small {
+  display: block;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--ink-3);
+}
+.progress.dense {
+  gap: 3px;
+}
+.gbar {
+  display: block;
+  width: 22px;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--line);
+  overflow: hidden;
+}
+.gbar i {
+  display: block;
+  height: 100%;
+  background: var(--ink-2);
+}
+.gbar.cur i {
+  background: var(--subj);
+}
+.gbar.cur {
+  outline: 1.5px solid var(--subj);
+  outline-offset: 1px;
+}
+.card-img {
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--line);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
+}
+.shared .report-total {
+  padding-top: 0;
+}
+.shared-sub {
+  margin: -6px 0 0;
+  color: var(--ink-3);
+  font-size: 14px;
+}
+.shared-cta {
+  margin: 6px 0 -4px;
+  text-align: center;
+  font-family: var(--serif);
+  font-weight: 800;
+  font-size: 18px;
+}
+.rp-val.muted {
+  color: var(--ink-3);
+  font-weight: 600;
+  font-size: 15px;
+}
+.shared .g {
+  opacity: 1;
+  transform: rotate(-8deg);
+  animation: none;
+}
+.after > .btn {
+  align-self: stretch;
+}

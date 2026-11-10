@@ -22,7 +22,7 @@ function shuffle<T>(arr: T[], rng: () => number): T[] {
   return a;
 }
 
-/** 한 판 문제를 뽑는다. 1교시부터 5교시까지 영역 순서대로 perSubject개씩.
+/** 한 판 문제를 뽑는다. 1교시부터 마지막 교시까지 영역 순서대로 perSubject개씩.
  *  같은 교시 안에서는 세부 분야와 형식이 겹치지 않게 고르고, 안 되면 조건을 푼다.
  *  숫자 찍기는 한 판 maxNumber개까지.
  *  반환값의 resetSeen=true면 어느 영역의 미출제 문제가 모자라 세션 기록을 비우고 뽑은 것 */
@@ -43,12 +43,14 @@ export function pickGame(all: Question[], opts: SelectOptions): { questions: Que
       mine.push(q);
       if (q.type === 'number') numbers++;
     };
-    for (const strict of [true, false]) {
+    // 2: 분야·형식 모두 안 겹치게 → 1: 형식만 안 겹치게 → 0: 조건 없이 (숫자 제한은 유지)
+    for (const level of [2, 1, 0]) {
       for (const q of pool) {
         if (mine.length >= per) break;
         if (mine.includes(q)) continue;
         if (q.type === 'number' && numbers >= maxNumber) continue;
-        if (strict && mine.some((m) => m.category === q.category || m.type === q.type)) continue;
+        if (level >= 1 && mine.some((m) => m.type === q.type)) continue;
+        if (level >= 2 && mine.some((m) => m.category === q.category)) continue;
         take(q);
       }
     }

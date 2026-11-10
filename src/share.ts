@@ -32,6 +32,44 @@ export function subjectResults(played: Played[]): SubjectResult[] {
   }).filter((r) => r.played.length > 0);
 }
 
+/** 공유 링크에 담는 요약 성적. scores는 SUBJECTS 순서, 응시하지 않은 교시는 null */
+export interface SharedResult {
+  mode: string;
+  scores: (number | null)[];
+  avg: number;
+}
+
+/** "f-824-750-600-900-700-660-743": 모드, 교시별 점수×10, 마지막이 평균×10 */
+export function encodeResult(r: SharedResult): string {
+  const n = (v: number) => String(Math.round(Math.max(0, Math.min(100, v)) * 10));
+  return [r.mode, ...r.scores.map((v) => (v === null ? 'x' : n(v))), n(r.avg)].join('-');
+}
+
+export function decodeResult(s: string | null): SharedResult | null {
+  if (!s) return null;
+  const parts = s.split('-');
+  if (parts.length !== SUBJECTS.length + 2 || !/^[a-z]$/.test(parts[0])) return null;
+  const num = (p: string) => (/^\d{1,4}$/.test(p) && Number(p) <= 1000 ? Number(p) / 10 : NaN);
+  const scores = parts.slice(1, -1).map((p) => (p === 'x' ? null : num(p)));
+  const avg = num(parts[parts.length - 1]);
+  if (Number.isNaN(avg) || scores.some((v) => v !== null && Number.isNaN(v)) || scores.every((v) => v === null)) return null;
+  return { mode: parts[0], scores, avg };
+}
+
+export function toShared(played: Played[], mode: string): SharedResult {
+  const res = subjectResults(played);
+  return {
+    mode,
+    scores: SUBJECTS.map((s) => res.find((r) => r.period === s.period)?.avg ?? null),
+    avg: averageOf(played),
+  };
+}
+
+/** 결과 링크: 기본 주소 + ?r=… (받은 사람은 성적표를 보고 바로 응시할 수 있다) */
+export function resultUrl(base: string, r: SharedResult): string {
+  return `${base}?r=${encodeResult(r)}`;
+}
+
 export function shareText(played: Played[], url: string): string {
   const avg = averageOf(played);
   const lines = [
@@ -42,7 +80,7 @@ export function shareText(played: Played[], url: string): string {
       (r) => `${r.period}교시 ${r.name} ${fmtScore(r.avg)}점 ${r.grade}등급 ${r.played.map((p) => scoreEmoji(p.score)).join('')}`,
     ),
     '',
-    '대한민국, 얼마나 잘 아세요?',
+    '대한민국, 얼마나 잘 아세요? 내 성적표 보고 응시하기 👇',
     url,
   ];
   return lines.join('\n');

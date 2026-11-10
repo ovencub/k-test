@@ -1,9 +1,10 @@
 import './style.css';
-import { GAME_NAME, QUESTIONS_PER_SUBJECT, REPO_URL, partialMode, reportUrl } from './config';
+import { canvasBlob, renderCard, saveImage, type CardData } from './card';
+import { GAME_NAME, MODES, REPO_URL, modeById, partialMode, reportUrl, type Mode } from './config';
 import { loadBank } from './data';
 import { rankTitle, score, scoreEmoji } from './scoring';
 import { loadSeen, pickGame, saveSeen } from './select';
-import { averageOf, fmtScore, share, shareText, subjectResults } from './share';
+import { averageOf, decodeResult, fmtScore, resultUrl, share, shareText, subjectResults, toShared, type SharedResult } from './share';
 import { SUBJECTS, gradeOf, subjectOf, type Subject } from './subjects';
 import type { Played, Question } from './types';
 import { h, tween } from './widgets/common';
@@ -34,13 +35,22 @@ function catList(cats: string[]): (Node | string)[] {
 
 // ───────── 시작 화면 (문제지 표지) ─────────
 function intro() {
-  const start = h('button', { class: 'btn primary big', type: 'button' }, '시험 시작');
-  start.addEventListener('click', () => startGame());
-  const per = QUESTIONS_PER_SUBJECT;
+  const [quick, full] = MODES;
+  const modeBtn = (m: Mode, primary: boolean) => {
+    const b = h(
+      'button',
+      { class: `btn big mode-btn${primary ? ' primary' : ''}`, type: 'button' },
+      h('b', {}, m.label),
+      h('small', {}, `교시당 ${m.per}문항 · 총 ${SUBJECTS.length * m.per}문항 · 약 ${m.minutes}분`),
+    );
+    b.addEventListener('click', () => startGame(m));
+    return b;
+  };
+  const start = h('div', { class: 'mode-pick' }, modeBtn(quick, true), modeBtn(full, false));
   const table = h(
     'table',
     { class: 'timetable' },
-    h('thead', {}, h('tr', {}, h('th', {}, '교시'), h('th', {}, '영역'), h('th', {}, '문항'))),
+    h('thead', {}, h('tr', {}, h('th', {}, '교시'), h('th', {}, '영역'), h('th', {}, `문항`, h('small', {}, `${quick.label.slice(0, 2)}/${full.label.slice(0, 2)}`)))),
     h(
       'tbody',
       {},
@@ -50,7 +60,7 @@ function intro() {
           { style: `--subj:${sub.color}` },
           h('td', { class: 'tt-period' }, `${sub.period}교시`),
           h('td', { class: 'tt-name' }, h('b', {}, sub.name), h('small', {}, ...catList(sub.categories))),
-          h('td', { class: 'tt-count' }, String(per)),
+          h('td', { class: 'tt-count' }, `${quick.per}/${full.per}`),
         ),
       ),
     ),
@@ -75,7 +85,7 @@ function intro() {
         h(
           'ol',
           {},
-          h('li', {}, `${SUBJECTS.length}교시 · ${SUBJECTS.length * per}문항 · 약 6분. 막대를 올리고, 선을 긋고, 파이를 나눠 답하세요.`),
+          h('li', {}, `${SUBJECTS.length}교시. 막대를 올리고, 선을 긋고, 파이를 나눠 답하세요.`),
           h('li', {}, '점수는 ', h('strong', {}, '모든 교시가 끝난 뒤'), ' 한꺼번에 공개합니다.'),
           h('li', {}, '모든 문제에 공식 통계 출처와 ', h('strong', {}, '이 숫자만으로 말할 수 없는 것'), '이 붙어 있습니다.'),
         ),
@@ -121,12 +131,18 @@ function blocksOf(list: Question[]): Block[] {
   return blocks;
 }
 
-function startGame() {
+let currentMode: Mode = MODES[0];
+
+function startGame(mode: Mode = currentMode) {
+  currentMode = mode;
+  // 공유받은 결과 링크(?r=)로 들어왔다면 응시를 시작할 때 주소에서 지운다
+  if (new URLSearchParams(location.search).has('r')) history.replaceState(null, '', location.pathname);
   let questions = forcedQuestions();
   if (!questions) {
     const seen = loadSeen();
     const picked = pickGame(bank, {
-      perSubject: QUESTIONS_PER_SUBJECT,
+      perSubject: mode.per,
+      maxNumber: mode.maxNumber,
       seen,
       excludePartial: partialMode() === 'hide',
     });
@@ -155,6 +171,17 @@ function startGame() {
 
 function progress(i: number, n: number, blocks: Block[]) {
   const wrap = h('div', { class: 'progress', 'aria-label': `${n}문항 중 ${i + 1}번째` });
+  // 문항이 많으면(실전 응시) 교시마다 짧은 막대 하나로
+  if (n > 15) {
+    wrap.classList.add('dense');
+    for (const b of blocks) {
+      const done = Math.max(0, Math.min(b.end, i) - b.start);
+      const cur = i >= b.start && i < b.end;
+      const fill = h('i', { style: `width:${((done + (cur ? 0.5 : 0)) / (b.end - b.start)) * 100}%` });
+      wrap.append(h('span', { class: `gbar${cur ? ' cur' : ''}`, style: `--subj:${b.subject.color}` }, fill));
+    }
+    return wrap;
+  }
   for (const b of blocks) {
     const grp = h('span', { class: 'grp', style: `--subj:${b.subject.color}` });
     for (let k = b.start; k < b.end; k++) grp.append(h('span', { class: k < i ? 'done' : k === i ? 'cur' : '' }));
@@ -417,17 +444,45 @@ async function reportCard(played: Played[], show: Show) {
     h('div', { class: 'stamp', 'aria-label': `종합 ${grade}등급` }, h('b', {}, String(grade)), h('span', {}, '등급')),
   );
 
-  const shareBtn = h('button', { class: 'btn primary', type: 'button' }, '성적표 공유하기');
+  const mode = currentMode;
+  const shared = toShared(played, mode.id);
+  const link = resultUrl(location.origin + location.pathname, shared);
+  const text = shareText(played, link);
   const shareMsg = h('p', { class: 'share-msg', role: 'status' });
-  const again = h('button', { class: 'btn', type: 'button' }, '다시 응시하기');
-  const text = shareText(played, location.origin + location.pathname);
   const preview = h('pre', { class: 'share-preview', hidden: '' }, text);
-  shareBtn.addEventListener('click', async () => {
+
+  // 성적표 이미지: 미리 그려 두고 저장 버튼으로 내려받기·공유
+  const img = h('img', { class: 'card-img', alt: '성적통지표 요약 이미지', hidden: '' });
+  const saveBtn = h('button', { class: 'btn primary', type: 'button' }, '성적표 이미지 저장');
+  let cardBlob: Blob | null = null;
+  const cardReady = renderCard(cardData(shared, mode.label, played.length))
+    .then(canvasBlob)
+    .then((b) => {
+      cardBlob = b;
+      if (b) {
+        img.setAttribute('src', URL.createObjectURL(b));
+        img.hidden = false;
+      }
+    })
+    .catch(() => undefined);
+  saveBtn.addEventListener('click', async () => {
+    await cardReady;
+    if (!cardBlob) {
+      shareMsg.textContent = '이미지를 만들지 못했어요. 화면을 캡처해 공유해 주세요.';
+      return;
+    }
+    const r = await saveImage(cardBlob, `대한민국통계고사_성적표_${fmtScore(shared.avg)}점.png`, text);
+    shareMsg.textContent = r === 'downloaded' ? '성적표 이미지를 저장했어요.' : r === 'shared' ? '' : '저장하지 못했어요. 이미지를 길게 눌러 저장해 주세요.';
+  });
+
+  const linkBtn = h('button', { class: 'btn', type: 'button' }, '결과 링크 공유하기');
+  linkBtn.addEventListener('click', async () => {
     const r = await share(text);
-    shareMsg.textContent = r === 'copied' ? '성적표를 복사했어요. 붙여넣어 공유하세요!' : r === 'shared' ? '' : '공유하지 못했어요. 아래 문구를 직접 복사해 주세요.';
+    shareMsg.textContent = r === 'copied' ? '결과 링크를 복사했어요. 받은 사람은 내 성적표를 보고 바로 응시할 수 있어요!' : r === 'shared' ? '' : '공유하지 못했어요. 아래 문구를 직접 복사해 주세요.';
     if (r === 'failed') preview.hidden = false;
   });
-  again.addEventListener('click', () => startGame());
+  const again = h('button', { class: 'btn', type: 'button' }, '다시 응시하기');
+  again.addEventListener('click', () => intro());
 
   const list = h('ol', { class: 'final-list' });
   for (const r of results) {
@@ -448,11 +503,13 @@ async function reportCard(played: Played[], show: Show) {
     'div',
     { class: 'after reveal' },
     h('p', { class: 'grade-note' }, '※ 등급은 임시 기준입니다(평균 90점 이상 1등급, 10점마다 한 등급). 응시 기록이 쌓이면 실제 응시자 분포로 바꿀 예정이에요.'),
-    h('h2', { class: 'fl-caption' }, '문항별 채점'),
-    list,
-    h('div', { class: 'final-actions' }, shareBtn, again),
+    h('div', { class: 'final-actions' }, saveBtn, linkBtn),
     shareMsg,
     preview,
+    img,
+    h('h2', { class: 'fl-caption' }, '문항별 채점'),
+    list,
+    again,
   );
 
   mount(
@@ -498,12 +555,97 @@ async function reportCard(played: Played[], show: Show) {
   skip.remove();
 }
 
+function cardData(r: SharedResult, modeLabel: string, count: number): CardData {
+  const grade = gradeOf(r.avg, 100);
+  return {
+    year: EXAM_YEAR,
+    title: GAME_NAME,
+    modeLabel,
+    count,
+    rows: SUBJECTS.map((s, i) => {
+      const v = r.scores[i];
+      return { period: s.period, name: s.name, color: s.color, avg: v, grade: v === null ? null : gradeOf(v, 100) };
+    }),
+    avg: r.avg,
+    grade,
+    rank: rankTitle(r.avg, 100),
+    site: location.host + location.pathname.replace(/\/$/, ''),
+  };
+}
+
+// ───────── 공유받은 성적표 (?r=) ─────────
+function sharedLanding(r: SharedResult) {
+  const mode = modeById(r.mode);
+  const grade = gradeOf(r.avg, 100);
+  const rows = SUBJECTS.map((s, i) => {
+    const v = r.scores[i];
+    return h(
+      'tr',
+      { style: `--subj:${s.color}` },
+      h('th', { scope: 'row' }, h('span', { class: 'rp-period' }, `${s.period}교시`), s.name),
+      h(
+        'td',
+        { class: 'rp-score' },
+        v === null
+          ? h('span', { class: 'rp-val muted' }, '미응시')
+          : h('span', { class: 'rp-val' }, fmtScore(v), h('small', {}, '점')),
+        v === null ? null : h('span', { class: 'rp-bar' }, h('i', { style: `width:${v}%` })),
+      ),
+      h('td', { class: 'rp-grade' }, v === null ? '' : h('span', { class: 'g stamped' }, String(gradeOf(v, 100)))),
+    );
+  });
+  const [quick, full] = MODES;
+  const go = (m: Mode, primary: boolean) => {
+    const b = h('button', { class: `btn big mode-btn${primary ? ' primary' : ''}`, type: 'button' }, h('b', {}, `나도 ${m.label}`), h('small', {}, `${SUBJECTS.length * m.per}문항 · 약 ${m.minutes}분`));
+    b.addEventListener('click', () => startGame(m));
+    return b;
+  };
+  const home = h('button', { class: 'btn ghost-btn', type: 'button' }, '시험 안내 보기');
+  home.addEventListener('click', () => {
+    history.replaceState(null, '', location.pathname);
+    intro();
+  });
+  mount(
+    h(
+      'main',
+      { class: 'screen final shared' },
+      paperTop(`${EXAM_YEAR} ${GAME_NAME}`, '성적통지표'),
+      h('h1', { class: 'final-head' }, '친구의 성적표가 도착했어요'),
+      h('p', { class: 'shared-sub' }, `${mode ? mode.label : '응시'} 결과 · 대한민국, 얼마나 잘 아세요?`),
+      h(
+        'section',
+        { class: 'report-total in stamped' },
+        h(
+          'div',
+          {},
+          h('p', { class: 'rt-label' }, '최종 평균 점수'),
+          h('p', { class: 'rt-score' }, fmtScore(r.avg), h('span', { class: 'rt-max' }, ' / 100')),
+          h('p', { class: 'final-rank' }, rankTitle(r.avg, 100)),
+        ),
+        h('div', { class: 'stamp', 'aria-label': `종합 ${grade}등급` }, h('b', {}, String(grade)), h('span', {}, '등급')),
+      ),
+      h(
+        'table',
+        { class: 'report' },
+        h('caption', {}, '영역별 성적'),
+        h('thead', {}, h('tr', {}, h('th', { scope: 'col' }, '영역'), h('th', { scope: 'col' }, '점수 (100점 만점)'), h('th', { scope: 'col' }, '등급'))),
+        h('tbody', {}, ...rows),
+      ),
+      h('p', { class: 'shared-cta' }, '나는 몇 점일까? 공식 통계로 채점하는 대한민국 상식 시험'),
+      h('div', { class: 'mode-pick' }, go(quick, true), go(full, false)),
+      home,
+    ),
+  );
+}
+
 // ───────── 시작 ─────────
 async function boot() {
   app.replaceChildren(h('main', { class: 'screen loading' }, logo(), h('p', {}, '문제지를 나눠주는 중…')));
   try {
     bank = (await loadBank()).questions;
-    intro();
+    const shared = decodeResult(new URLSearchParams(location.search).get('r'));
+    if (shared) sharedLanding(shared);
+    else intro();
   } catch (e) {
     app.replaceChildren(h('main', { class: 'screen loading' }, logo(), h('p', { class: 'error' }, String((e as Error).message))));
   }

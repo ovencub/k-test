@@ -35,17 +35,21 @@ describe('영역(교시) 매핑', () => {
 });
 
 describe('pickGame', () => {
-  it('500판 모두: 10문제, 1~5교시 순서로 2문제씩, 교시 안에서 분야·형식 중복 없음, 숫자 2개 이하', () => {
-    for (let s = 1; s <= 500; s++) {
-      const { questions: qs } = pickGame(questions, { perSubject: PER, seen: new Set(), excludePartial: false, rng: seeded(s) });
-      expect(qs).toHaveLength(SUBJECTS.length * PER);
-      expect(qs.map((q) => subjectOf(q.category).period)).toEqual(SUBJECTS.flatMap((x) => Array(PER).fill(x.period)));
-      for (let k = 0; k < qs.length; k += PER) {
-        const pair = qs.slice(k, k + PER);
-        expect(new Set(pair.map((q) => q.category)).size).toBe(PER);
-        expect(new Set(pair.map((q) => q.type)).size).toBe(PER);
+  it.each([
+    [2, 2],
+    [5, 4],
+  ])('교시당 %i문항: 300판 모두 교시 순서대로, 교시 안 형식 다양, 숫자 %i개 이하, 중복 없음', (per, maxNumber) => {
+    for (let s = 1; s <= 300; s++) {
+      const { questions: qs } = pickGame(questions, { perSubject: per, maxNumber, seen: new Set(), excludePartial: false, rng: seeded(s) });
+      expect(qs).toHaveLength(SUBJECTS.length * per);
+      expect(qs.map((q) => subjectOf(q.category).period)).toEqual(SUBJECTS.flatMap((x) => Array(per).fill(x.period)));
+      for (let k = 0; k < qs.length; k += per) {
+        const group = qs.slice(k, k + per);
+        // 형식은 교시 안에서 최대한 겹치지 않게 (2문항이면 반드시 다름, 5문항이면 3종 이상)
+        expect(new Set(group.map((q) => q.type)).size).toBeGreaterThanOrEqual(per === 2 ? 2 : 3);
+        if (per === 2) expect(new Set(group.map((q) => q.category)).size).toBe(2);
       }
-      expect(qs.filter((q) => q.type === 'number').length).toBeLessThanOrEqual(2);
+      expect(qs.filter((q) => q.type === 'number').length).toBeLessThanOrEqual(maxNumber);
       expect(new Set(qs.map((q) => q.id)).size).toBe(qs.length);
     }
   });

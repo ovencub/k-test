@@ -7,8 +7,19 @@ export type PartialMode = 'show' | 'badge' | 'hide';
 
 const DEFAULT_PARTIAL_MODE: PartialMode = 'badge';
 
-/** 교시(영역)마다 문제 수. 6교시 × 2 = 한 판 12문제 */
-export const QUESTIONS_PER_SUBJECT = 2;
+/** 응시 방식. per = 교시(영역)마다 문제 수, maxNumber = 한 판 숫자 찍기 최대 개수 */
+export interface Mode {
+  id: 'q' | 'f';
+  label: string;
+  per: number;
+  minutes: number;
+  maxNumber: number;
+}
+export const MODES: Mode[] = [
+  { id: 'q', label: '빠른 응시', per: 2, minutes: 6, maxNumber: 2 },
+  { id: 'f', label: '실전 응시', per: 5, minutes: 15, maxNumber: 4 },
+];
+export const modeById = (id: string): Mode | undefined => MODES.find((m) => m.id === id);
 
 export const GAME_NAME = '대한민국 통계고사';
 
