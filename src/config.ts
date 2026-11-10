@@ -23,7 +23,7 @@ export const modeById = (id: string): Mode | undefined => MODES.find((m) => m.id
 
 export const GAME_NAME = '대한민국 통계고사';
 
-export const REPO_URL = 'https://github.com/ovencub/zziksin';
+export const REPO_URL = 'https://github.com/ovencub/k-test';
 
 /** 문제별 수치·출처 오류 제보 (GitHub 이슈, 문제 번호만 미리 채움) */
 export function reportUrl(q: { id: string; title: string }): string {

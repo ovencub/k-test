@@ -26,8 +26,8 @@ describe('결과 링크', () => {
   });
 
   it('URL 형식', () => {
-    expect(resultUrl('https://ovencub.github.io/zziksin/', { mode: 'q', scores: [10, 20, 30, 40, 50, 60], avg: 35 })).toBe(
-      'https://ovencub.github.io/zziksin/?r=q-100-200-300-400-500-600-350',
+    expect(resultUrl('https://ovencub.github.io/k-test/', { mode: 'q', scores: [10, 20, 30, 40, 50, 60], avg: 35 })).toBe(
+      'https://ovencub.github.io/k-test/?r=q-100-200-300-400-500-600-350',
     );
   });
 });
