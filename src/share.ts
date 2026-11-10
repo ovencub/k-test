@@ -7,31 +7,39 @@ export interface SubjectResult {
   period: number;
   name: string;
   color: string;
-  score: number;
-  max: number;
+  /** 교시 평균 점수 (0~100) */
+  avg: number;
   grade: number;
   played: Played[];
 }
 
-/** 교시별 원점수·등급 (문제가 없는 교시는 빠진다) */
+/** 소수 첫째 자리까지 (정수면 정수로) */
+export function fmtScore(v: number): string {
+  const r = Math.round(v * 10) / 10;
+  return Number.isInteger(r) ? String(r) : r.toFixed(1);
+}
+
+export function averageOf(played: Played[]): number {
+  return played.length ? played.reduce((a, p) => a + p.score, 0) / played.length : 0;
+}
+
+/** 교시별 평균 점수·등급 (문제가 없는 교시는 빠진다) */
 export function subjectResults(played: Played[]): SubjectResult[] {
   return SUBJECTS.map((s) => {
     const mine = played.filter((p) => subjectOf(p.question.category).id === s.id);
-    const score = mine.reduce((a, p) => a + p.score, 0);
-    const max = mine.length * 100;
-    return { period: s.period, name: s.name, color: s.color, score, max, grade: gradeOf(score, max), played: mine };
+    const avg = averageOf(mine);
+    return { period: s.period, name: s.name, color: s.color, avg, grade: gradeOf(avg, 100), played: mine };
   }).filter((r) => r.played.length > 0);
 }
 
 export function shareText(played: Played[], url: string): string {
-  const total = played.reduce((a, p) => a + p.score, 0);
-  const max = played.length * 100;
+  const avg = averageOf(played);
   const lines = [
     `${GAME_NAME} 성적통지표`,
-    `총점 ${total}/${max} · ${gradeOf(total, max)}등급 · ${rankTitle(total, max)}`,
+    `평균 ${fmtScore(avg)}점 · ${gradeOf(avg, 100)}등급 · ${rankTitle(avg, 100)}`,
     '',
     ...subjectResults(played).map(
-      (r) => `${r.period}교시 ${r.name} ${r.grade}등급 ${r.played.map((p) => scoreEmoji(p.score)).join('')}`,
+      (r) => `${r.period}교시 ${r.name} ${fmtScore(r.avg)}점 ${r.grade}등급 ${r.played.map((p) => scoreEmoji(p.score)).join('')}`,
     ),
     '',
     '대한민국, 얼마나 잘 아세요?',

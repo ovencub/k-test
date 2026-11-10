@@ -1,4 +1,4 @@
-/** 모의고사 교시(영역). 문제의 category를 다섯 영역으로 묶는다.
+/** 통계고사 교시(영역). 문제의 category를 여섯 영역으로 묶는다.
  *  새 category를 만들면 여기 categories에도 넣어야 한다 (tests/select.test.ts가 검사). */
 export interface Subject {
   id: string;
@@ -15,6 +15,7 @@ export const SUBJECTS: Subject[] = [
   { id: 'politics', period: 3, name: '정치·안전', color: '#e0590f', categories: ['범죄·안전', '정치·선거·여론', '국방·의료', '사법·인권'] },
   { id: 'health', period: 4, name: '건강·교육', color: '#1c7ed6', categories: ['보건·복지', '교육'] },
   { id: 'life', period: 5, name: '생활·환경', color: '#c2255c', categories: ['생활·문화', '환경·에너지', '과학·디지털', '식품·농업'] },
+  { id: 'geo', period: 6, name: '한국지리', color: '#9a6a08', categories: ['국토·자연', '기후·재해', '지역·도시'] },
 ];
 
 const byCategory = new Map(SUBJECTS.flatMap((s) => s.categories.map((c) => [c, s] as const)));
@@ -28,7 +29,8 @@ export function isMapped(category: string): boolean {
   return byCategory.has(category);
 }
 
-/** 원점수 비율 → 1~9등급 (절대평가) */
+/** 점수 비율 → 1~9등급.
+ *  임시 기준(절대평가, 10점 간격). 응시 데이터가 쌓이면 실제 점수 분포(상대평가)로 바꿀 예정 */
 export function gradeOf(score: number, max: number): number {
   const r = max > 0 ? score / max : 0;
   const cuts = [0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2];

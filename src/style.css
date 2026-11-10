@@ -1419,3 +1419,183 @@ table.cmp {
 .nowrap {
   white-space: nowrap;
 }
+
+/* ═════════ 채점 → 성적 발표 연출 ═════════ */
+.ghost-btn {
+  border-color: var(--line);
+  color: var(--ink-2);
+  font-size: 15px;
+  min-height: 44px;
+  padding: 10px 18px;
+}
+.grading {
+  min-height: calc(100vh - 48px);
+  min-height: calc(100dvh - 48px);
+  gap: 14px;
+}
+.gr-pen {
+  margin: 36px auto 4px;
+  width: 92px;
+  height: 92px;
+  border-radius: 50%;
+  border: 4px solid var(--pen);
+  border-right-color: transparent;
+  animation: gr-spin 0.9s linear infinite;
+}
+@keyframes gr-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.gr-title {
+  margin: 0;
+  text-align: center;
+  font-family: var(--serif);
+  font-size: 26px;
+  font-weight: 900;
+}
+.gr-sub {
+  margin: 0;
+  text-align: center;
+  color: var(--ink-3);
+  font-size: 14px;
+}
+.gr-list {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 0;
+  border: 1.5px solid var(--ink);
+  background: var(--paper);
+}
+.gr-list li {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-top: 1px solid var(--grid);
+  box-shadow: inset 4px 0 0 var(--subj);
+  color: var(--ink-3);
+  transition: color 0.2s;
+}
+.gr-list li:first-child {
+  border-top: 0;
+}
+.gr-list li.on {
+  color: var(--ink);
+}
+.gr-name {
+  font-family: var(--serif);
+  font-weight: 800;
+}
+.gr-state {
+  font-size: 13px;
+  font-weight: 700;
+}
+.gr-list li.on .gr-state {
+  color: var(--subj);
+}
+.gr-list li.done .gr-state {
+  color: var(--pen);
+}
+.grading .ghost-btn {
+  margin-top: auto;
+}
+
+/* 성적 발표: 숨겨 두었다가 차례로 */
+.final-head {
+  margin: 4px 0 0;
+  font-family: var(--serif);
+  font-size: 28px;
+  font-weight: 900;
+}
+.reveal {
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+.reveal.in {
+  opacity: 1;
+  transform: none;
+}
+tr.reveal {
+  transform: none;
+}
+.g {
+  opacity: 0;
+  transform: scale(1.8) rotate(-12deg);
+}
+.g.stamped {
+  animation: g-stamp 0.35s cubic-bezier(0.2, 1.6, 0.4, 1) forwards;
+}
+@keyframes g-stamp {
+  to {
+    opacity: 1;
+    transform: rotate(-8deg);
+  }
+}
+.stamp {
+  opacity: 0;
+  animation: none;
+}
+.report-total.stamped .stamp {
+  animation: stamp 0.45s cubic-bezier(0.2, 1.6, 0.4, 1) forwards;
+}
+@keyframes stamp {
+  from {
+    opacity: 0;
+    transform: rotate(-10deg) scale(2.2);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(-10deg) scale(1);
+  }
+}
+.report-total .final-rank {
+  opacity: 0;
+  transition: opacity 0.5s 0.3s;
+}
+.report-total.stamped .final-rank {
+  opacity: 1;
+}
+.report-total.stamped {
+  animation: thump 0.35s 0.05s;
+}
+@keyframes thump {
+  40% {
+    transform: translateY(3px);
+  }
+}
+.report tfoot .rp-val {
+  font-size: 20px;
+}
+.grade-note {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--ink-3);
+}
+.after {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.skip-btn {
+  position: sticky;
+  bottom: calc(12px + env(safe-area-inset-bottom));
+  align-self: center;
+  background: var(--bg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gr-pen {
+    animation: none;
+  }
+  .reveal,
+  .g,
+  .stamp,
+  .report-total .final-rank {
+    opacity: 1;
+    transform: none;
+    transition: none;
+    animation: none;
+  }
+}
