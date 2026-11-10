@@ -7,7 +7,10 @@ export type PartialMode = 'show' | 'badge' | 'hide';
 
 const DEFAULT_PARTIAL_MODE: PartialMode = 'badge';
 
-export const QUESTIONS_PER_GAME = 5;
+/** 교시(영역)마다 문제 수. 5교시 × 2 = 한 판 10문제 */
+export const QUESTIONS_PER_SUBJECT = 2;
+
+export const GAME_NAME = '대한민국 모의고사';
 
 export const REPO_URL = 'https://github.com/ovencub/zziksin';
 

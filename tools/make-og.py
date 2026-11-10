@@ -24,11 +24,15 @@ def og():
     d = ImageDraw.Draw(im)
 
     # 왼쪽: 제목
-    d.text((70, 92), '찍신', font=f(168), fill=INK)
-    d.text((80, 300), 'ZZIK SIN', font=f(40), fill=GUESS)
-    d.text((70, 392), '말싸움 붙는 그 숫자,', font=f(44), fill=INK)
-    d.text((70, 452), '감으로 찍고 통계로 확인!', font=f(44), fill=INK)
-    d.text((70, 540), '5문제 · 2분 · 모든 문제에 출처', font=f(28), fill=INK3)
+    d.text((70, 52), '2026학년도 문제지', font=f(26), fill=INK3)
+    d.line([(70, 96), (630, 96)], fill=INK, width=3)
+    d.line([(70, 103), (630, 103)], fill=INK, width=3)
+    d.text((70, 128), '대한민국', font=f(108), fill=INK)
+    d.text((70, 254), '모의고사', font=f(108), fill=INK)
+    d.rectangle([72, 398, 300, 452], outline=INK, width=3)
+    d.text((186, 425), '통 계  영 역', font=f(30), fill=INK, anchor='mm')
+    d.text((70, 484), '대한민국, 얼마나 잘 아세요?', font=f(40), fill=GUESS)
+    d.text((70, 548), '5교시 · 10문항 · 성적표 · 모든 문제에 출처', font=f(26), fill=INK3)
 
     # 오른쪽: 막대 맞추기 카드
     cx0, cy0, cx1, cy1 = 690, 70, 1140, 560

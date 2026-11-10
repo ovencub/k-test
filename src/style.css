@@ -17,6 +17,9 @@
   --myth: #fff3e0;
   --caveat: #eef2ff;
   --radius: 16px;
+  --pen: #d42f2f;
+  --paper: #fbfaf6;
+  --serif: 'Noto Serif KR', 'Nanum Myeongjo', 'Batang', serif;
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
@@ -35,6 +38,8 @@
     --actual-soft: rgba(111, 143, 255, 0.16);
     --myth: #2a2219;
     --caveat: #1c2236;
+    --pen: #ff6b6b;
+    --paper: #16191f;
     color-scheme: dark;
   }
 }
@@ -894,4 +899,523 @@ table.cmp {
   .result {
     animation: none;
   }
+}
+
+/* ═════════ 모의고사 테마 ═════════ */
+.logo-ko {
+  font-family: var(--serif);
+  font-size: 30px;
+  letter-spacing: -0.02em;
+}
+.logo-en {
+  font-family: var(--serif);
+  letter-spacing: 0.3em;
+}
+
+/* 시험지 맨 윗줄 */
+.paper-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-bottom: 8px;
+  border-bottom: 3px double var(--ink);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink-2);
+}
+.paper-tag {
+  flex: none;
+  border: 1.5px solid var(--ink);
+  color: var(--ink);
+  padding: 2px 9px;
+  font-weight: 800;
+  font-family: var(--serif);
+}
+
+/* 표지 */
+.intro {
+  min-height: 0;
+  justify-content: flex-start;
+  gap: 18px;
+}
+.cover {
+  text-align: center;
+  padding: 14px 0 6px;
+}
+.cover-title {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: 60px;
+  font-weight: 900;
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+}
+.cover-sub {
+  display: inline-block;
+  margin: 16px 0 0;
+  padding: 5px 20px;
+  border: 2px solid var(--ink);
+  font-family: var(--serif);
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.4em;
+  text-indent: 0.4em;
+}
+.intro .tagline {
+  text-align: center;
+  font-size: 20px;
+}
+.intro .tagline span {
+  font-size: 15.5px;
+  font-weight: 600;
+  color: var(--ink-2);
+}
+.timetable {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--paper);
+  border: 1.5px solid var(--ink);
+  font-size: 14px;
+}
+.timetable th {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink-2);
+  padding: 6px 10px;
+  border-bottom: 1.5px solid var(--ink);
+  text-align: left;
+}
+.timetable td {
+  padding: 8px 10px;
+  border-top: 1px solid var(--grid);
+  vertical-align: middle;
+}
+.tt-period {
+  width: 62px;
+  font-family: var(--serif);
+  font-weight: 800;
+  color: var(--subj);
+  white-space: nowrap;
+  box-shadow: inset 4px 0 0 var(--subj);
+}
+.tt-name b {
+  display: block;
+  font-size: 15px;
+}
+.tt-name small {
+  display: block;
+  font-size: 11.5px;
+  color: var(--ink-3);
+  margin-top: 1px;
+}
+.tt-count,
+.timetable th:last-child {
+  text-align: center;
+  width: 44px;
+}
+.tt-count {
+  font-weight: 800;
+}
+.notice {
+  border: 1px solid var(--line);
+  background: var(--paper);
+  padding: 12px 14px;
+}
+.notice h2 {
+  margin: 0 0 6px;
+  font-size: 13px;
+  font-family: var(--serif);
+}
+.notice ol {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 4px;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+.notice strong {
+  color: var(--ink);
+}
+
+/* 교시 표지 */
+.period {
+  min-height: calc(100vh - 48px);
+  min-height: calc(100dvh - 48px);
+  gap: 16px;
+}
+.period-card {
+  margin-top: auto;
+  text-align: center;
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  border-top: 8px solid var(--subj);
+  padding: 30px 18px 22px;
+  animation: period-in 0.45s ease-out;
+}
+@keyframes period-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.98);
+  }
+}
+.period-no {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--subj);
+  letter-spacing: 0.1em;
+}
+.period-name {
+  margin: 6px 0 0;
+  font-family: var(--serif);
+  font-size: 44px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+}
+.period-cats {
+  margin: 8px 0 0;
+  font-size: 13.5px;
+  color: var(--ink-3);
+}
+.period-info {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  margin: 22px 0 0;
+  border-top: 1px solid var(--line);
+  padding-top: 14px;
+}
+.period-info dt {
+  font-size: 11.5px;
+  color: var(--ink-3);
+}
+.period-info dd {
+  margin: 3px 0 0;
+  font-weight: 800;
+  font-size: 15px;
+}
+.period-info dd small {
+  font-weight: 500;
+  color: var(--ink-3);
+}
+.period .btn.big {
+  margin-bottom: auto;
+  background: var(--subj);
+  border-color: var(--subj);
+  color: #fff;
+}
+.period-prev {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-left: 5px solid var(--subj);
+  padding: 10px 14px;
+  font-size: 13px;
+  color: var(--ink-2);
+}
+.period-prev strong {
+  font-family: var(--serif);
+  font-size: 22px;
+  color: var(--pen);
+  white-space: nowrap;
+}
+.period-prev small {
+  font-size: 13px;
+  color: var(--ink-2);
+}
+
+/* 문제 화면 */
+.play-head {
+  padding-bottom: 9px;
+  border-bottom: 3px double var(--ink);
+}
+.period-tag {
+  font-family: var(--serif);
+  font-size: 15px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.period-tag b {
+  color: var(--subj);
+}
+.prog-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.qcount {
+  font-size: 12.5px;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.progress {
+  gap: 7px;
+}
+.progress .grp {
+  display: flex;
+  gap: 2px;
+}
+.progress .grp span {
+  width: 11px;
+  height: 6px;
+  border-radius: 2px;
+  background: var(--line);
+}
+.progress .grp span.done {
+  background: var(--ink-2);
+}
+.progress .grp span.cur {
+  background: var(--subj);
+}
+.q-title {
+  font-family: var(--serif);
+  font-weight: 800;
+  font-size: 24px;
+}
+.q-no {
+  color: var(--subj);
+}
+.q-points {
+  font-family: 'Pretendard Variable', Pretendard, sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-3);
+  margin-left: 6px;
+  white-space: nowrap;
+}
+.chip {
+  border-radius: 4px;
+  background: var(--subj, var(--ink));
+  color: #fff;
+}
+.chip.ghost {
+  border-radius: 4px;
+}
+
+/* 채점: 빨간 펜 동그라미 */
+.score-badge,
+.score-badge.shi,
+.score-badge.smid,
+.score-badge.slo {
+  background: transparent;
+  color: var(--pen);
+  border: 3px solid var(--pen);
+  border-radius: 50% 46% 52% 48%;
+  transform: rotate(-7deg);
+  font-family: var(--serif);
+  padding-top: 22px;
+}
+.score-badge .score-max {
+  color: var(--pen);
+}
+
+/* 성적통지표 */
+.final {
+  gap: 16px;
+}
+.report-total {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 2px 0;
+}
+.rt-label {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink-3);
+}
+.rt-score {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: 60px;
+  font-weight: 900;
+  line-height: 1.05;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+}
+.rt-max {
+  font-size: 22px;
+  color: var(--ink-3);
+  font-weight: 700;
+}
+.report-total .final-rank {
+  margin-top: 4px;
+  color: var(--pen);
+  font-size: 19px;
+}
+.stamp {
+  flex: none;
+  width: 104px;
+  height: 104px;
+  border: 4px solid var(--pen);
+  border-radius: 50%;
+  color: var(--pen);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transform: rotate(-10deg);
+  box-shadow: inset 0 0 0 3px var(--bg), inset 0 0 0 5px var(--pen);
+  animation: stamp 0.4s 0.9s cubic-bezier(0.2, 1.6, 0.4, 1) both;
+}
+.stamp b {
+  font-family: var(--serif);
+  font-size: 46px;
+  line-height: 1;
+}
+.stamp span {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+}
+@keyframes stamp {
+  from {
+    opacity: 0;
+    transform: rotate(-10deg) scale(1.8);
+  }
+}
+.report {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--paper);
+  border: 2px solid var(--ink);
+}
+.report caption {
+  text-align: left;
+  font-family: var(--serif);
+  font-weight: 800;
+  font-size: 15px;
+  padding-bottom: 6px;
+}
+.report thead th {
+  background: var(--ink);
+  color: var(--bg);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 10px;
+  text-align: left;
+}
+.report thead th:last-child,
+.rp-grade {
+  text-align: center;
+  width: 64px;
+}
+.report tbody th,
+.report tfoot th {
+  text-align: left;
+  padding: 10px;
+  font-size: 15px;
+  white-space: nowrap;
+}
+.report tbody th {
+  box-shadow: inset 5px 0 0 var(--subj);
+  padding-left: 14px;
+}
+.report td {
+  padding: 10px;
+}
+.report tbody tr + tr > * {
+  border-top: 1px solid var(--grid);
+}
+.report tfoot > tr > * {
+  border-top: 2px solid var(--ink);
+  font-family: var(--serif);
+  font-weight: 900;
+}
+.rp-period {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--subj);
+}
+.rp-score {
+  width: 100%;
+}
+.rp-val {
+  display: block;
+  font-weight: 800;
+  font-size: 18px;
+  font-variant-numeric: tabular-nums;
+}
+.rp-val small {
+  font-size: 12px;
+  color: var(--ink-3);
+  font-weight: 600;
+}
+.rp-bar {
+  display: block;
+  height: 6px;
+  margin-top: 5px;
+  background: var(--grid);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.rp-bar i {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: var(--subj);
+}
+.g {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 2px solid var(--pen);
+  border-radius: 50%;
+  color: var(--pen);
+  font-family: var(--serif);
+  font-weight: 900;
+  font-size: 18px;
+}
+.fl-caption {
+  margin: 4px 0 -6px;
+  font-family: var(--serif);
+  font-size: 15px;
+}
+.final-list {
+  border-radius: 0;
+  background: var(--paper);
+}
+.final-list li.fl-head {
+  padding: 8px 14px 6px;
+  font-size: 12.5px;
+  font-weight: 800;
+  color: var(--subj);
+  background: var(--bg);
+}
+.btn {
+  border-radius: 10px;
+}
+
+@media (max-width: 380px) {
+  .cover-title {
+    font-size: 50px;
+  }
+  .rt-score {
+    font-size: 48px;
+  }
+  .stamp {
+    width: 88px;
+    height: 88px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .period-card,
+  .stamp {
+    animation: none;
+  }
+}
+.nowrap {
+  white-space: nowrap;
 }

@@ -1,7 +1,9 @@
+import { SUBJECTS, subjectOf } from './subjects';
 import type { Question } from './types';
 
 export interface SelectOptions {
-  count: number;
+  /** 교시(영역)마다 낼 문제 수 */
+  perSubject: number;
   /** 이번 세션에 이미 푼 문제 id */
   seen: ReadonlySet<string>;
   /** partial 문제 제외 여부 */
@@ -20,64 +22,43 @@ function shuffle<T>(arr: T[], rng: () => number): T[] {
   return a;
 }
 
-/** 한 판 문제를 뽑는다.
- *  1) 분야가 겹치지 않게, 숫자 찍기는 maxNumber개까지
- *  2) 형식이 1종뿐이면 마지막 문제를 다른 형식으로 교체
- *  3) 조건을 만족 못 하면 조건을 풀어 채운다
- *  반환값의 resetSeen=true면 미출제 문제가 모자라 세션 기록을 비우고 뽑은 것 */
+/** 한 판 문제를 뽑는다. 1교시부터 5교시까지 영역 순서대로 perSubject개씩.
+ *  같은 교시 안에서는 세부 분야와 형식이 겹치지 않게 고르고, 안 되면 조건을 푼다.
+ *  숫자 찍기는 한 판 maxNumber개까지.
+ *  반환값의 resetSeen=true면 어느 영역의 미출제 문제가 모자라 세션 기록을 비우고 뽑은 것 */
 export function pickGame(all: Question[], opts: SelectOptions): { questions: Question[]; resetSeen: boolean } {
   const rng = opts.rng ?? Math.random;
-  const maxNumber = opts.maxNumber ?? 1;
+  const maxNumber = opts.maxNumber ?? 2;
+  const per = opts.perSubject;
   const eligible = all.filter((q) => !(opts.excludePartial && q.verification === 'partial'));
-
-  let pool = eligible.filter((q) => !opts.seen.has(q.id));
-  let resetSeen = false;
-  if (pool.length < opts.count) {
-    pool = eligible;
-    resetSeen = true;
-  }
-  const order = shuffle(pool, rng);
+  const bySubject = SUBJECTS.map((s) => eligible.filter((q) => subjectOf(q.category).id === s.id));
+  const resetSeen = bySubject.some((list) => list.filter((q) => !opts.seen.has(q.id)).length < per);
 
   const picked: Question[] = [];
-  const cats = new Set<string>();
   let numbers = 0;
-  const take = (q: Question) => {
-    picked.push(q);
-    cats.add(q.category);
-    if (q.type === 'number') numbers++;
-  };
-
-  // 1차: 분야 중복 없음 + 숫자 제한
-  for (const q of order) {
-    if (picked.length >= opts.count) break;
-    if (cats.has(q.category)) continue;
-    if (q.type === 'number' && numbers >= maxNumber) continue;
-    take(q);
+  for (const list of bySubject) {
+    const pool = shuffle(resetSeen ? list : list.filter((q) => !opts.seen.has(q.id)), rng);
+    const mine: Question[] = [];
+    const take = (q: Question) => {
+      mine.push(q);
+      if (q.type === 'number') numbers++;
+    };
+    for (const strict of [true, false]) {
+      for (const q of pool) {
+        if (mine.length >= per) break;
+        if (mine.includes(q)) continue;
+        if (q.type === 'number' && numbers >= maxNumber) continue;
+        if (strict && mine.some((m) => m.category === q.category || m.type === q.type)) continue;
+        take(q);
+      }
+    }
+    for (const q of pool) {
+      if (mine.length >= per) break;
+      if (!mine.includes(q)) take(q);
+    }
+    picked.push(...mine);
   }
-  // 2차: 모자라면 분야 제한을 풀고 채움 (숫자 제한은 유지)
-  for (const q of order) {
-    if (picked.length >= opts.count) break;
-    if (picked.includes(q)) continue;
-    if (q.type === 'number' && numbers >= maxNumber) continue;
-    take(q);
-  }
-  // 3차: 그래도 모자라면 아무거나
-  for (const q of order) {
-    if (picked.length >= opts.count) break;
-    if (!picked.includes(q)) take(q);
-  }
-
-  // 형식 최소 2종
-  if (picked.length > 1 && new Set(picked.map((q) => q.type)).size < 2) {
-    const onlyType = picked[0].type;
-    const usedCats = new Set(picked.slice(0, -1).map((q) => q.category));
-    const alt =
-      order.find((q) => q.type !== onlyType && !picked.includes(q) && !usedCats.has(q.category)) ??
-      order.find((q) => q.type !== onlyType && !picked.includes(q));
-    if (alt) picked[picked.length - 1] = alt;
-  }
-
-  return { questions: shuffle(picked, rng), resetSeen };
+  return { questions: picked, resetSeen };
 }
 
 const SEEN_KEY = 'zziksin.seen';

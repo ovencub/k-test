@@ -110,8 +110,9 @@ export function scoreEmoji(s: number): string {
 export function rankTitle(total: number, max: number): string {
   const r = total / max;
   if (r >= 0.9) return '찍신';
-  if (r >= 0.75) return '찍신 수제자';
-  if (r >= 0.6) return '통계 감별사';
+  if (r >= 0.8) return '대한민국 박사';
+  if (r >= 0.7) return '우등생';
+  if (r >= 0.55) return '평균은 한다';
   if (r >= 0.4) return '감으로 사는 사람';
   return '통념 수집가';
 }
