@@ -1,36 +1,31 @@
-/** 성적통지표 요약 이미지 (1080×1350, 인스타그램 세로 비율). 캔버스로 그려 PNG로 저장·공유 */
+/** 결과 요약 이미지 (1080×1350, 인스타그램 세로 비율). 캔버스로 그려 PNG로 저장·공유 */
 
 export interface CardRow {
-  period: number;
   name: string;
   color: string;
   avg: number | null;
-  grade: number | null;
 }
 
 export interface CardData {
-  year: string;
   title: string;
   modeLabel: string;
   count: number;
   rows: CardRow[];
   avg: number;
   grade: number;
-  rank: string;
+  nick: string;
+  hardest: string;
   site: string;
 }
 
 const C = {
-  bg: '#f7f5ee',
-  paper: '#fbfaf6',
-  ink: '#15171f',
-  ink2: '#4a4f5c',
-  ink3: '#8a8f9b',
-  line: '#dcd8ce',
-  grid: '#e9e5dc',
-  pen: '#d42f2f',
+  cream: '#FFF8EA',
+  ink: '#191B28',
+  ink3: '#6B6F80',
+  cobalt: '#2346E8',
+  lime: '#D4F45B',
+  track: '#EDE4D0',
 };
-const SERIF = '"Noto Serif KR", "Nanum Myeongjo", Batang, serif';
 const SANS = '"Pretendard Variable", Pretendard, -apple-system, "Malgun Gothic", sans-serif';
 
 const fmt = (v: number) => {
@@ -42,31 +37,28 @@ const fmt = (v: number) => {
 async function loadFonts(text: string) {
   if (!document.fonts?.load) return;
   try {
-    await Promise.all([
-      document.fonts.load(`900 92px ${SERIF}`, text),
-      document.fonts.load(`800 38px ${SERIF}`, text),
-      document.fonts.load(`700 34px ${SANS}`, text),
-      document.fonts.load(`800 40px ${SANS}`, text),
-    ]);
+    await Promise.all([900, 800, 700, 600].map((w) => document.fonts.load(`${w} 40px ${SANS}`, text)));
   } catch {
     /* 글꼴을 못 불러와도 계속 */
   }
 }
 
 function roundRect(x: CanvasRenderingContext2D, l: number, t: number, w: number, h: number, r: number) {
+  const rr = Math.min(r, w / 2, h / 2);
   x.beginPath();
-  x.moveTo(l + r, t);
-  x.arcTo(l + w, t, l + w, t + h, r);
-  x.arcTo(l + w, t + h, l, t + h, r);
-  x.arcTo(l, t + h, l, t, r);
-  x.arcTo(l, t, l + w, t, r);
+  x.moveTo(l + rr, t);
+  x.arcTo(l + w, t, l + w, t + h, rr);
+  x.arcTo(l + w, t + h, l, t + h, rr);
+  x.arcTo(l, t + h, l, t, rr);
+  x.arcTo(l, t, l + w, t, rr);
   x.closePath();
 }
 
+/** 결과 요약 이미지 1080×1350. 정답은 넣지 않고 점수·별명·주제 결과만 */
 export async function renderCard(d: CardData): Promise<HTMLCanvasElement> {
   const W = 1080;
   const H = 1350;
-  const allText = [d.year, d.title, d.modeLabel, d.rank, d.site, '성적통지표영역점수등급최종평균교시미응시문항공식통계채점대한민국얼마나잘아세요나도응시하기0123456789./→·', ...d.rows.map((r) => r.name)].join('');
+  const allText = [d.title, d.modeLabel, d.nick, d.hardest, d.site, '내 결과점평균 점수100만점너는 몇 나올 것 같아?→0123456789.·', ...d.rows.map((r) => r.name)].join('');
   await loadFonts(allText);
 
   const c = document.createElement('canvas');
@@ -74,163 +66,89 @@ export async function renderCard(d: CardData): Promise<HTMLCanvasElement> {
   c.height = H;
   const x = c.getContext('2d')!;
   x.textBaseline = 'alphabetic';
-
-  // 바탕과 테두리
-  x.fillStyle = C.bg;
+  x.fillStyle = C.cream;
   x.fillRect(0, 0, W, H);
-  x.fillStyle = C.paper;
-  x.fillRect(40, 40, W - 80, H - 80);
-  x.strokeStyle = C.ink;
-  x.lineWidth = 4;
-  x.strokeRect(40, 40, W - 80, H - 80);
-  x.lineWidth = 1.5;
-  x.strokeRect(52, 52, W - 104, H - 104);
 
-  // 맨 윗줄
-  x.fillStyle = C.ink2;
-  x.font = `600 28px ${SANS}`;
-  x.fillText(`${d.year} ${d.title}`, 90, 122);
-  x.font = `800 30px ${SERIF}`;
-  const tag = '성적통지표';
-  const tw = x.measureText(tag).width;
-  x.strokeStyle = C.ink;
-  x.lineWidth = 2.5;
-  x.strokeRect(W - 90 - tw - 28, 88, tw + 28, 46);
+  // 코발트 점수 카드
+  const P = 60;
+  x.fillStyle = C.cobalt;
+  roundRect(x, P, P, W - 2 * P, 640, 48);
+  x.fill();
+
+  x.font = `900 60px ${SANS}`;
+  x.fillStyle = C.cream;
+  x.fillText('그 정도라고', P + 56, P + 112);
+  const lw = x.measureText('그 정도라고').width;
+  x.fillStyle = C.lime;
+  x.fillText('?', P + 56 + lw + 4, P + 112);
+
+  x.font = `600 30px ${SANS}`;
+  x.fillStyle = 'rgba(255,248,234,0.75)';
+  x.fillText(`내 결과 · ${d.modeLabel}`, P + 56, P + 176);
+
+  // 별명: 라임 알약
+  x.font = `800 46px ${SANS}`;
+  const nw = x.measureText(d.nick).width;
+  x.fillStyle = C.lime;
+  roundRect(x, P + 48, P + 214, nw + 56, 82, 41);
+  x.fill();
   x.fillStyle = C.ink;
-  x.fillText(tag, W - 90 - tw - 14, 122);
-  x.lineWidth = 3;
-  x.beginPath();
-  x.moveTo(90, 156);
-  x.lineTo(W - 90, 156);
-  x.moveTo(90, 164);
-  x.lineTo(W - 90, 164);
-  x.stroke();
+  x.fillText(d.nick, P + 76, P + 270);
 
-  // 제목
-  x.fillStyle = C.ink;
-  x.font = `900 92px ${SERIF}`;
-  x.fillText(d.title, 86, 282);
-  x.fillStyle = C.ink3;
-  x.font = `600 32px ${SANS}`;
-  x.fillText(`${d.modeLabel} · ${d.count}문항 · 공식 통계 채점`, 90, 334);
+  // 평균 점수
+  x.fillStyle = C.cream;
+  x.font = `900 230px ${SANS}`;
+  const a = fmt(d.avg);
+  x.fillText(a, P + 44, P + 520);
+  const aw = x.measureText(a).width;
+  x.font = `800 72px ${SANS}`;
+  x.fillText('점', P + 44 + aw + 12, P + 520);
+  x.font = `600 30px ${SANS}`;
+  x.fillStyle = 'rgba(255,248,234,0.75)';
+  x.fillText('평균 점수 · 100점 만점', P + 56, P + 586);
 
-  // 영역별 표
-  const top = 380;
-  const headH = 54;
-  const rowH = 86;
-  const left = 90;
-  const right = W - 90;
-  x.fillStyle = C.ink;
-  x.fillRect(left, top, right - left, headH);
-  x.fillStyle = C.bg;
-  x.font = `700 24px ${SANS}`;
-  x.fillText('영역', left + 24, top + 36);
-  x.fillText('점수 (100점 만점)', 380, top + 36);
-  x.fillText('등급', right - 92, top + 36);
-
-  d.rows.forEach((r, i) => {
-    const y = top + headH + i * rowH;
-    if (i > 0) {
-      x.strokeStyle = C.grid;
-      x.lineWidth = 2;
-      x.beginPath();
-      x.moveTo(left, y);
-      x.lineTo(right, y);
-      x.stroke();
-    }
-    x.fillStyle = r.color;
-    x.fillRect(left, y, 10, rowH);
-    x.font = `700 24px ${SANS}`;
-    x.fillText(`${r.period}교시`, left + 30, y + 33);
+  // 가장 어려웠던 주제
+  let y = P + 640 + 84;
+  if (d.hardest) {
     x.fillStyle = C.ink;
-    x.font = `800 36px ${SERIF}`;
-    x.fillText(r.name, left + 30, y + 72);
+    x.font = `800 34px ${SANS}`;
+    x.fillText(d.hardest, P + 6, y);
+  }
 
+  // 주제별 막대
+  y += 40;
+  const rowH = 68;
+  d.rows.forEach((r, i) => {
+    const ry = y + i * rowH;
+    x.fillStyle = C.ink;
+    x.font = `700 30px ${SANS}`;
+    x.fillText(r.name, P + 6, ry + 42);
+    const bx = 330;
+    const bw = 540;
+    x.fillStyle = C.track;
+    roundRect(x, bx, ry + 22, bw, 22, 11);
+    x.fill();
+    x.textAlign = 'right';
     if (r.avg === null) {
       x.fillStyle = C.ink3;
-      x.font = `600 30px ${SANS}`;
-      x.fillText('미응시', 380, y + 54);
-      return;
+      x.font = `600 28px ${SANS}`;
+      x.fillText('–', W - P - 6, ry + 44);
+    } else {
+      x.fillStyle = r.color;
+      roundRect(x, bx, ry + 22, Math.max(22, (bw * r.avg) / 100), 22, 11);
+      x.fill();
+      x.fillStyle = C.ink;
+      x.font = `800 32px ${SANS}`;
+      x.fillText(fmt(r.avg), W - P - 6, ry + 44);
     }
-    x.fillStyle = C.ink;
-    x.font = `800 40px ${SANS}`;
-    const s = fmt(r.avg);
-    x.fillText(s, 380, y + 46);
-    const sw = x.measureText(s).width;
-    x.fillStyle = C.ink3;
-    x.font = `600 24px ${SANS}`;
-    x.fillText('점', 380 + sw + 6, y + 46);
-    // 막대
-    x.fillStyle = C.grid;
-    roundRect(x, 380, y + 58, 440, 12, 6);
-    x.fill();
-    x.fillStyle = r.color;
-    roundRect(x, 380, y + 58, Math.max(12, (440 * r.avg) / 100), 12, 6);
-    x.fill();
-    // 등급 동그라미
-    if (r.grade !== null) {
-      const cx = right - 66;
-      const cy = y + rowH / 2;
-      x.strokeStyle = C.pen;
-      x.lineWidth = 3.5;
-      x.beginPath();
-      x.arc(cx, cy, 30, 0, Math.PI * 2);
-      x.stroke();
-      x.fillStyle = C.pen;
-      x.font = `900 34px ${SERIF}`;
-      x.textAlign = 'center';
-      x.fillText(String(r.grade), cx, cy + 12);
-      x.textAlign = 'left';
-    }
+    x.textAlign = 'left';
   });
-  const tableBottom = top + headH + d.rows.length * rowH;
-  x.strokeStyle = C.ink;
-  x.lineWidth = 3;
-  x.strokeRect(left, top, right - left, tableBottom - top);
-
-  // 최종 평균
-  const sy = tableBottom + 64;
-  x.fillStyle = C.ink3;
-  x.font = `700 30px ${SANS}`;
-  x.fillText('최종 평균 점수', 90, sy);
-  x.fillStyle = C.ink;
-  x.font = `900 150px ${SERIF}`;
-  const a = fmt(d.avg);
-  x.fillText(a, 82, sy + 140);
-  const aw = x.measureText(a).width;
-  x.fillStyle = C.ink3;
-  x.font = `700 44px ${SANS}`;
-  x.fillText('/ 100', 82 + aw + 14, sy + 140);
-  x.fillStyle = C.pen;
-  x.font = `800 40px ${SANS}`;
-  x.fillText(d.rank, 90, sy + 192);
-
-  // 등급 도장
-  x.save();
-  x.translate(W - 210, sy + 92);
-  x.rotate((-10 * Math.PI) / 180);
-  x.strokeStyle = C.pen;
-  x.lineWidth = 8;
-  x.beginPath();
-  x.arc(0, 0, 112, 0, Math.PI * 2);
-  x.stroke();
-  x.lineWidth = 3;
-  x.beginPath();
-  x.arc(0, 0, 98, 0, Math.PI * 2);
-  x.stroke();
-  x.fillStyle = C.pen;
-  x.textAlign = 'center';
-  x.font = `900 112px ${SERIF}`;
-  x.fillText(String(d.grade), 0, 30);
-  x.font = `800 32px ${SANS}`;
-  x.fillText('등급', 0, 74);
-  x.restore();
 
   // 바닥글
-  x.fillStyle = C.ink2;
-  x.font = `600 27px ${SANS}`;
+  x.fillStyle = C.cobalt;
+  x.font = `800 32px ${SANS}`;
   x.textAlign = 'center';
-  x.fillText(`대한민국, 얼마나 잘 아세요?  나도 응시하기 → ${d.site}`, W / 2, H - 76);
+  x.fillText(`너는 몇 점 나올 것 같아?  →  ${d.site}`, W / 2, H - 62);
   x.textAlign = 'left';
   return c;
 }

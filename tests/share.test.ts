@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { decodeResult, encodeResult, resultUrl } from '../src/share';
+import { rankTitle } from '../src/scoring';
+import { decodeResult, encodeResult, hardestTopic, resultUrl } from '../src/share';
+import { gradeOf } from '../src/subjects';
 import { SUBJECTS } from '../src/subjects';
 
 describe('결과 링크', () => {
@@ -29,5 +31,20 @@ describe('결과 링크', () => {
     expect(resultUrl('https://ovencub.github.io/k-test/', { mode: 'q', scores: [10, 20, 30, 40, 50, 60], avg: 35 })).toBe(
       'https://ovencub.github.io/k-test/?r=q-100-200-300-400-500-600-350',
     );
+  });
+
+  it('리브랜딩 전 공유 링크도 같은 결과를 복원 (41.6점 · 6등급 · 감으로 사는 사람)', () => {
+    const r = decodeResult('f-358-468-490-630-128-424-416')!;
+    expect(r).not.toBeNull();
+    expect(r.mode).toBe('f');
+    expect(r.avg).toBe(41.6);
+    expect(gradeOf(r.avg, 100)).toBe(6);
+    expect(rankTitle(r.avg, 100)).toBe('감으로 사는 사람');
+    expect(hardestTopic(r.scores)).toEqual({ name: '생활·환경', avg: 12.8 });
+  });
+
+  it('가장 어려웠던 주제: 안 푼 주제는 건너뛰고, 같으면 앞 순서', () => {
+    expect(hardestTopic([50, null, 30, 30, 80, 90])).toEqual({ name: '정치·안전', avg: 30 });
+    expect(hardestTopic([null, null, null, null, null, null])).toBeNull();
   });
 });

@@ -7,21 +7,26 @@ export type PartialMode = 'show' | 'badge' | 'hide';
 
 const DEFAULT_PARTIAL_MODE: PartialMode = 'badge';
 
-/** 응시 방식. per = 교시(영역)마다 문제 수, maxNumber = 한 판 숫자 찍기 최대 개수 */
+/** 플레이 방식. per = 주제마다 문제 수, maxNumber = 한 판 숫자 찍기 최대 개수.
+ *  id는 결과 링크(?r=)에 들어가므로 바꾸지 않는다 (q = 12문제, f = 30문제) */
 export interface Mode {
   id: 'q' | 'f';
+  /** 버튼 문구 */
   label: string;
+  /** 짧은 이름 (결과·이미지) */
+  short: string;
   per: number;
   minutes: number;
   maxNumber: number;
 }
 export const MODES: Mode[] = [
-  { id: 'q', label: '빠른 응시', per: 2, minutes: 6, maxNumber: 2 },
-  { id: 'f', label: '실전 응시', per: 5, minutes: 15, maxNumber: 4 },
+  { id: 'q', label: '12문제 풀어보기', short: '12문제', per: 2, minutes: 6, maxNumber: 2 },
+  { id: 'f', label: '30문제 풀어보기', short: '30문제', per: 5, minutes: 15, maxNumber: 4 },
 ];
 export const modeById = (id: string): Mode | undefined => MODES.find((m) => m.id === id);
 
-export const GAME_NAME = '대한민국 통계고사';
+export const GAME_NAME = '그 정도라고?';
+export const TAGLINE = '한국의 진짜 숫자, 감으로 맞혀보는 게임.';
 
 export const REPO_URL = 'https://github.com/ovencub/k-test';
 

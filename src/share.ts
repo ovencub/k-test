@@ -70,20 +70,29 @@ export function resultUrl(base: string, r: SharedResult): string {
   return `${base}?r=${encodeResult(r)}`;
 }
 
+/** 가장 어려웠던 주제 (평균이 가장 낮은 주제, 같으면 앞 순서) */
+export function hardestTopic(scores: (number | null)[]): { name: string; avg: number } | null {
+  let best: { name: string; avg: number } | null = null;
+  SUBJECTS.forEach((s, i) => {
+    const v = scores[i];
+    if (v !== null && (best === null || v < best.avg)) best = { name: s.name, avg: v };
+  });
+  return best;
+}
+
+/** 공유 문구. 문항 정답은 넣지 않는다 (친구에게 스포일러) */
 export function shareText(played: Played[], url: string): string {
   const avg = averageOf(played);
+  const shared = toShared(played, '');
+  const hard = hardestTopic(shared.scores);
   const lines = [
-    `${GAME_NAME} 성적통지표`,
-    `평균 ${fmtScore(avg)}점 · ${gradeOf(avg, 100)}등급 · ${rankTitle(avg, 100)}`,
-    '',
-    ...subjectResults(played).map(
-      (r) => `${r.period}교시 ${r.name} ${fmtScore(r.avg)}점 ${r.grade}등급 ${r.played.map((p) => scoreEmoji(p.score)).join('')}`,
-    ),
-    '',
-    '대한민국, 얼마나 잘 아세요? 내 성적표 보고 응시하기 👇',
+    `🇰🇷 ${GAME_NAME} ${fmtScore(avg)}점 · ${rankTitle(avg, 100)}`,
+    hard ? `가장 어려웠던 주제 · ${hard.name} ${fmtScore(hard.avg)}점` : '',
+    played.map((p) => scoreEmoji(p.score)).join(''),
+    '너는 몇 점 나올 것 같아? 👇',
     url,
   ];
-  return lines.join('\n');
+  return lines.filter(Boolean).join('\n');
 }
 
 /** 모바일은 공유 시트, 아니면 클립보드. 결과 문구를 돌려준다. */
