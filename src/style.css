@@ -20,6 +20,8 @@
   --cobalt: #2346e8;
   --cobalt-ink: #2346e8;
   --lime: #d4f45b;
+  --on-lime: #191b28;
+  --btn-shadow: #191b28;
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
@@ -41,6 +43,8 @@
     --cobalt: #3553ee;
     --cobalt-ink: #9aabff;
     --lime: #d4f45b;
+    --on-lime: #191b28;
+    --btn-shadow: #05060a;
     color-scheme: dark;
   }
 }
@@ -130,7 +134,7 @@ a {
 .btn:focus-visible,
 .nudge:focus-visible,
 [tabindex]:focus-visible {
-  outline: 3px solid var(--guess);
+  outline: 3px solid var(--cobalt-ink);
   outline-offset: 2px;
 }
 
@@ -923,7 +927,8 @@ body {
 .tt-score {
   font-variant-numeric: tabular-nums;
 }
-h1:focus {
+h1[tabindex="-1"]:focus,
+h1[tabindex="-1"]:focus-visible {
   outline: none;
 }
 .muted {
@@ -932,6 +937,7 @@ h1:focus {
 
 /* 로고 */
 .logo {
+  display: block;
   margin: 0;
   font-size: 22px;
   font-weight: 900;
@@ -991,11 +997,11 @@ h1:focus {
 }
 .mode-btn.big.primary {
   min-height: 64px;
-  box-shadow: 0 6px 0 var(--ink);
+  box-shadow: 0 6px 0 var(--btn-shadow);
 }
 .mode-btn.big.primary:active {
   transform: translateY(3px);
-  box-shadow: 0 3px 0 var(--ink);
+  box-shadow: 0 3px 0 var(--btn-shadow);
 }
 
 /* 첫 화면 */
@@ -1014,7 +1020,7 @@ h1:focus {
 }
 .landing .logo-q {
   background: var(--lime);
-  color: var(--ink);
+  color: var(--on-lime);
   border-radius: 14px;
   padding: 0 0.12em;
   margin-left: 0.1em;
@@ -1133,7 +1139,7 @@ h1:focus {
   font-size: 12px;
   font-weight: 800;
   background: var(--lime);
-  color: var(--ink);
+  color: var(--on-lime);
   border-radius: 999px;
   padding: 2px 9px;
   animation: pop 0.2s ease-out;
@@ -1228,7 +1234,7 @@ h1:focus {
   margin: 4px 0 0;
   align-self: flex-start;
   background: var(--lime);
-  color: var(--ink);
+  color: var(--on-lime);
   border-radius: 999px;
   padding: 6px 16px;
   font-size: clamp(22px, 6.4vw, 30px);

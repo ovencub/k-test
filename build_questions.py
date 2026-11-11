@@ -3657,6 +3657,53 @@ for _q in Q:
         _q.update(FILL[_q["id"]])
 
 
+# ───────────────────── 막대 순서 스포일러 방지 ─────────────────────
+# 값 크기순으로 늘어선 막대에서 숨긴 막대를 그 순위 자리에 두면 답의 범위·순위가 드러난다
+# (예: 2.9 > 2.8 > 2.7 > [?] > 2.6 이면 ?는 2.6~2.7). 순서에 의미가 없는 문항만 섞는다.
+# 연령대·소득분위·학교급·전국→수도권→서울처럼 순서 자체가 의미인 문항은 그대로 둔다.
+import random as _random
+
+DESPOIL = {"Q031", "Q038", "Q053", "Q140", "Q157", "Q159", "Q160", "Q185", "Q194",
+           "Q226", "Q295", "Q402", "Q405", "Q406", "Q409", "Q417", "Q423"}
+# 2×2 구조(봉직/개원 × 일반의/전문의)는 고용 형태끼리 묶어 보여준다
+BAR_ORDER = {"Q165": ["봉직 일반의", "봉직 전문의", "개원 일반의", "개원 전문의"]}
+
+
+def _monotonic(v):
+    return all(v[i] >= v[i + 1] for i in range(len(v) - 1)) or all(v[i] <= v[i + 1] for i in range(len(v) - 1))
+
+
+def _leaks(bars):
+    """값 순서가 그대로 보이거나, 숨긴 막대가 양옆 값 사이에 끼어 범위가 드러나면 True"""
+    v = [b["value"] for b in bars]
+    if _monotonic(v):
+        return True
+    for i, b in enumerate(bars):
+        if b["hidden"] and 0 < i < len(bars) - 1:
+            lo, hi = sorted((v[i - 1], v[i + 1]))
+            if lo <= v[i] <= hi:
+                return True
+    return False
+
+
+for _q in Q:
+    if _q["type"] != "bar":
+        continue
+    if _q["id"] in BAR_ORDER:
+        order = BAR_ORDER[_q["id"]]
+        _q["bars"] = sorted(_q["bars"], key=lambda b: order.index(b["label"]))
+    elif _q["id"] in DESPOIL:
+        rng = _random.Random(_q["id"])  # 문항마다 고정된 순서 (빌드할 때마다 같음)
+        bars = list(_q["bars"])
+        for _ in range(2000):
+            rng.shuffle(bars)
+            if not _leaks(bars):
+                _q["bars"] = list(bars)
+                break
+        else:
+            raise SystemExit(f"{_q['id']}: 스포일러 없는 순서를 찾지 못함")
+
+
 # ───────────────────────── 검증 ─────────────────────────
 SLICE_TYPES = {"pie": "slices", "donut": "slices", "distribution": "bins"}
 TARGET_COUNT = 430

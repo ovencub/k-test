@@ -42,8 +42,11 @@ describe('숫자', () => {
   it('허용오차 안이면 90점 이상', () => {
     expect(scoreNumber(1700, 1558, 200, 6000)).toBeGreaterThanOrEqual(90);
   });
-  it('2배 틀리면 낮은 점수', () => {
-    expect(scoreNumber(3116, 1558, 200, 6000)).toBeLessThan(20);
+  it('2배 틀리면 절반 이하', () => {
+    expect(scoreNumber(3116, 1558, 200, 6000)).toBeLessThan(45);
+  });
+  it('정답 크기의 1.5배 넘게 빗나가면 0점', () => {
+    expect(scoreNumber(1558 + 200 + 1558 * 1.5, 1558, 200, 6000)).toBe(0);
   });
   it('음수·0 근처 정답도 슬라이더 폭 기준으로 완화', () => {
     // 정답 -1, 슬라이더 -10~10: 1 차이는 꽤 가까운 답
@@ -52,24 +55,24 @@ describe('숫자', () => {
 });
 
 describe('막대', () => {
-  it('범위의 5% 오차는 80점', () => {
-    expect(scoreBars([55], [50], [0, 100])).toBeCloseTo(80);
+  it('범위의 5% 오차는 약 87점', () => {
+    expect(scoreBars([55], [50], [0, 100])).toBeCloseTo(86.67, 1);
   });
-  it('범위의 25% 이상이면 0점', () => {
-    expect(scoreBars([80], [50], [0, 100])).toBe(0);
+  it('범위의 37.5% 이상이면 0점', () => {
+    expect(scoreBars([90], [50], [0, 100])).toBe(0);
   });
 });
 
 describe('버블 (면적 로그 비율)', () => {
-  it('2배 크게와 2배 작게는 같은 점수, 50점', () => {
-    expect(scoreBubbles([200], [100])).toBeCloseTo(50);
-    expect(scoreBubbles([50], [100])).toBeCloseTo(50);
+  it('2배 크게와 2배 작게는 같은 점수, 약 67점', () => {
+    expect(scoreBubbles([200], [100])).toBeCloseTo(66.67, 1);
+    expect(scoreBubbles([50], [100])).toBeCloseTo(66.67, 1);
   });
 });
 
 describe('파이·도넛·분포도', () => {
-  it('도넛 10%p 차이는 약 67점', () => {
-    expect(scoreShares([60, 40], [50, 50])).toBeCloseTo(66.67, 1);
+  it('도넛 10%p 차이는 약 78점', () => {
+    expect(scoreShares([60, 40], [50, 50])).toBeCloseTo(77.78, 1);
   });
   it('분포도: 최빈 구간을 맞히면 가산점', () => {
     // 두 답의 오차 합은 같고, 최빈 구간만 다름

@@ -2,11 +2,14 @@ import type { Answer, Question } from './types';
 
 /** 모든 형식을 0~100점으로. 공식 근거는 spec.md 5장. 플레이 테스트로 아래 상수를 조정한다. */
 export const TUNING = {
-  barZeroAt: 0.25, // 막대: yRange 폭의 25% 빗나가면 0점
-  bubbleZeroAt: Math.log(4), // 버블: 면적 4배 빗나가면 0점
-  shareZeroAt: 60, // 파이·도넛·분포도: 절대오차 합 60%p면 0점
-  lineZeroAt: 0.25, // 추세선: yRange 폭의 25% 빗나가면 0점
+  // 2026-11-11 완화: 플레이 테스트에서 평균이 50점을 넘기 어려워 0점 기준을 1.5배로 넓혔다
+  // (같은 오차면 50점 → 약 67점). 모두 "얼마나 빗나가면 0점인가" 기준값이다.
+  barZeroAt: 0.375, // 막대: yRange 폭의 37.5% 빗나가면 0점
+  bubbleZeroAt: Math.log(8), // 버블: 면적 8배 빗나가면 0점
+  shareZeroAt: 90, // 파이·도넛·분포도: 절대오차 합 90%p면 0점
+  lineZeroAt: 0.375, // 추세선: yRange 폭의 37.5% 빗나가면 0점
   numberFloorFrac: 0.1, // 숫자: 0 근처 정답은 슬라이더 폭의 10%를 기준 크기로
+  numberScale: 1.5, // 숫자: 정답 크기의 1.5배만큼 빗나가면 0점
 };
 
 const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
@@ -16,7 +19,7 @@ export function scoreNumber(guess: number, answer: number, tol: number | null, s
   const e = Math.abs(guess - answer);
   const t = tol ?? 0;
   if (t > 0 && e <= t) return 100 - (10 * e) / t;
-  const d = Math.max(Math.abs(answer), TUNING.numberFloorFrac * sliderSpan);
+  const d = TUNING.numberScale * Math.max(Math.abs(answer), TUNING.numberFloorFrac * sliderSpan);
   return 90 * clamp01(1 - (e - t) / d);
 }
 
